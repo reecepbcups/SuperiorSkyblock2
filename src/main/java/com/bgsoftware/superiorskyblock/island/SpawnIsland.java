@@ -243,6 +243,15 @@ public class SpawnIsland implements Island {
     }
 
     @Override
+    public boolean areAllOnlinePlayersInsideAFK() {
+        for (SuperiorPlayer superiorPlayer : playersInside) {
+            if (superiorPlayer.isOnline() && !superiorPlayer.isAFK())
+                return false;
+        }
+        return true;
+    }
+
+    @Override
     public List<SuperiorPlayer> getUniqueVisitors() {
         return Collections.emptyList();
     }

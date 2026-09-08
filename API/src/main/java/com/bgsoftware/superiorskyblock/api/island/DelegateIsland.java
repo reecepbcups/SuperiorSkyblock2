@@ -111,6 +111,11 @@ public class DelegateIsland implements Island {
     }
 
     @Override
+    public boolean areAllOnlinePlayersInsideAFK() {
+        return this.handle.areAllOnlinePlayersInsideAFK();
+    }
+
+    @Override
     public List<SuperiorPlayer> getUniqueVisitors() {
         return this.handle.getUniqueVisitors();
     }

@@ -516,6 +516,7 @@ public class SIsland implements Island {
     // Allocation-free AFK check for hot event paths (redstone / entity spawn), which fire
     // constantly. Mirrors getAllPlayersInside().stream().allMatch(SuperiorPlayer::isAFK):
     // only online players count, and an empty island returns true.
+    @Override
     public boolean areAllOnlinePlayersInsideAFK() {
         return playersInside.readAndGet(playersInside -> {
             for (SuperiorPlayer superiorPlayer : playersInside) {
@@ -1301,14 +1302,6 @@ public class SIsland implements Island {
     public boolean isInside(WorldPosition worldPosition, double extraRadius) {
         Preconditions.checkNotNull(worldPosition, "worldPosition parameter cannot be null.");
         return this.entireArea.expandAndIntercepts(worldPosition.getX(), worldPosition.getZ(), extraRadius);
-    }
-
-    /**
-     * Allocation-free equivalent of {@code isInside(WorldPosition)} (X/Z area intercept only, no
-     * world check) used on the hot getIslandAt path to avoid allocating a WorldPosition per lookup.
-     */
-    public boolean intersectsArea(double x, double z) {
-        return this.entireArea.expandAndIntercepts(x, z, 0D);
     }
 
     @Override

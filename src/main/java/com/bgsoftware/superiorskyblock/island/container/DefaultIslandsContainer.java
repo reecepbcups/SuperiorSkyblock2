@@ -10,8 +10,8 @@ import com.bgsoftware.superiorskyblock.api.world.WorldInfo;
 import com.bgsoftware.superiorskyblock.api.wrappers.BlockPosition;
 import com.bgsoftware.superiorskyblock.core.IslandPosition;
 import com.bgsoftware.superiorskyblock.core.LazyWorldLocation;
-import com.bgsoftware.superiorskyblock.core.SWorldPosition;
-import com.bgsoftware.superiorskyblock.island.SIsland;
+import com.bgsoftware.superiorskyblock.core.MutableWorldPosition;
+import com.bgsoftware.superiorskyblock.core.ObjectsPools;
 import com.bgsoftware.superiorskyblock.core.SequentialListBuilder;
 import com.bgsoftware.superiorskyblock.core.collections.EnumerateSet;
 import com.bgsoftware.superiorskyblock.core.events.plugin.PluginEventType;
@@ -162,13 +162,12 @@ public class DefaultIslandsContainer implements IslandsContainer {
         if (island == null)
             return null;
 
-        // Fast path: verify the X/Z area intercept without allocating a WorldPosition per lookup.
-        // Semantics match isInside(WorldPosition) (area-only, no world check). Non-SIsland islands
-        // fall back to the original path to preserve behavior.
-        boolean inside = island instanceof SIsland ?
-                ((SIsland) island).intersectsArea(location.getX(), location.getZ()) :
-                island.isInside(SWorldPosition.of(location));
-        return inside ? island : null;
+        // Verify the X/Z area intercept without allocating a WorldPosition per lookup, by reusing a
+        // pooled mutable position. Semantics match isInside(WorldPosition) (area-only, no world check).
+        try (MutableWorldPosition worldPosition = ObjectsPools.WORLD_POSITION.obtain()) {
+            boolean inside = island.isInside(worldPosition.set(location.getX(), location.getY(), location.getZ()));
+            return inside ? island : null;
+        }
     }
 
     private Island customWorldsSupportIslandLookup(Location location) {

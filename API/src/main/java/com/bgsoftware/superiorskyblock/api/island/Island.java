@@ -127,6 +127,15 @@ public interface Island extends Comparable<Island>, IMissionsHolder, IPersistent
     List<SuperiorPlayer> getAllPlayersInside();
 
     /**
+     * Check whether all the online players that are on the island are AFK.
+     * An island with no online players inside is considered AFK.
+     * <p>
+     * This is an allocation-free equivalent of iterating {@link #getAllPlayersInside()}, intended
+     * for hot event paths.
+     */
+    boolean areAllOnlinePlayersInsideAFK();
+
+    /**
      * Get all the visitors that visited the island until now.
      */
     List<SuperiorPlayer> getUniqueVisitors();
