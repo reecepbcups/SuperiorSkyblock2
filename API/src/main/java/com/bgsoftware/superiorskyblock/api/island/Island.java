@@ -49,6 +49,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public interface Island extends Comparable<Island>, IMissionsHolder, IPersistentDataHolder, IDatabaseBridgeHolder {
 
@@ -127,13 +128,24 @@ public interface Island extends Comparable<Island>, IMissionsHolder, IPersistent
     List<SuperiorPlayer> getAllPlayersInside();
 
     /**
-     * Check whether all the online players that are on the island are AFK.
-     * An island with no online players inside is considered AFK.
+     * Check whether any of the players that are on the island match the given predicate.
      * <p>
-     * This is an allocation-free equivalent of iterating {@link #getAllPlayersInside()}, intended
+     * Unlike {@link #getAllPlayersInside()}, no list is created, which makes this suitable
      * for hot event paths.
+     *
+     * @param predicate The predicate to test the players with.
      */
-    boolean areAllOnlinePlayersInsideAFK();
+    boolean anyPlayerInsideMatches(Predicate<SuperiorPlayer> predicate);
+
+    /**
+     * Count the players that are on the island that match the given predicate.
+     * <p>
+     * Unlike {@link #getAllPlayersInside()}, no list is created, which makes this suitable
+     * for hot event paths.
+     *
+     * @param predicate The predicate to test the players with.
+     */
+    int countPlayersInside(Predicate<SuperiorPlayer> predicate);
 
     /**
      * Get all the visitors that visited the island until now.

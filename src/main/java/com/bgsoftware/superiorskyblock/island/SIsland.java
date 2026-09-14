@@ -160,6 +160,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class SIsland implements Island {
@@ -513,17 +514,33 @@ public class SIsland implements Island {
                 .build(playersInside));
     }
 
-    // Allocation-free AFK check for hot event paths (redstone / entity spawn), which fire
-    // constantly. Mirrors getAllPlayersInside().stream().allMatch(SuperiorPlayer::isAFK):
-    // only online players count, and an empty island returns true.
+    // Both methods below iterate playersInside without building a list, for hot event paths
+    // (redstone / entity spawn) that fire constantly.
+
     @Override
-    public boolean areAllOnlinePlayersInsideAFK() {
+    public boolean anyPlayerInsideMatches(Predicate<SuperiorPlayer> predicate) {
+        Preconditions.checkNotNull(predicate, "predicate parameter cannot be null.");
+
         return playersInside.readAndGet(playersInside -> {
             for (SuperiorPlayer superiorPlayer : playersInside) {
-                if (superiorPlayer.isOnline() && !superiorPlayer.isAFK())
-                    return false;
+                if (predicate.test(superiorPlayer))
+                    return true;
             }
-            return true;
+            return false;
+        });
+    }
+
+    @Override
+    public int countPlayersInside(Predicate<SuperiorPlayer> predicate) {
+        Preconditions.checkNotNull(predicate, "predicate parameter cannot be null.");
+
+        return playersInside.readAndGet(playersInside -> {
+            int count = 0;
+            for (SuperiorPlayer superiorPlayer : playersInside) {
+                if (predicate.test(superiorPlayer))
+                    ++count;
+            }
+            return count;
         });
     }
 

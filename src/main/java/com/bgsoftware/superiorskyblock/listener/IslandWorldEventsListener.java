@@ -3,6 +3,7 @@ package com.bgsoftware.superiorskyblock.listener;
 import com.bgsoftware.superiorskyblock.SuperiorSkyblockPlugin;
 import com.bgsoftware.superiorskyblock.api.island.Island;
 import com.bgsoftware.superiorskyblock.api.service.hologram.HologramsService;
+import com.bgsoftware.superiorskyblock.api.wrappers.SuperiorPlayer;
 import com.bgsoftware.superiorskyblock.core.LazyReference;
 import com.bgsoftware.superiorskyblock.core.ObjectsPools;
 import com.bgsoftware.superiorskyblock.core.logging.Debug;
@@ -15,7 +16,13 @@ import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 
+import java.util.function.Predicate;
+
 public class IslandWorldEventsListener extends AbstractGameEventListener {
+
+    // Shared by both callbacks below, which fire constantly.
+    private static final Predicate<SuperiorPlayer> ONLINE_AND_NOT_AFK =
+            superiorPlayer -> superiorPlayer.isOnline() && !superiorPlayer.isAFK();
 
     private final LazyReference<HologramsService> hologramsService = new LazyReference<HologramsService>() {
         @Override
@@ -51,7 +58,7 @@ public class IslandWorldEventsListener extends AbstractGameEventListener {
 
         if ((plugin.getSettings().isDisableRedstoneOffline() && !island.isCurrentlyActive()) ||
                 (plugin.getSettings().getAFKIntegrations().isDisableRedstone() &&
-                        island.areAllOnlinePlayersInsideAFK())) {
+                        !island.anyPlayerInsideMatches(ONLINE_AND_NOT_AFK))) {
             try (ObjectsPools.Wrapper<Location> wrapper = ObjectsPools.LOCATION.obtain()) {
                 Log.debug(Debug.DISABLE_REDSTONE, island.getOwner().getName(), block.getLocation(wrapper.getHandle()));
             }
@@ -75,7 +82,7 @@ public class IslandWorldEventsListener extends AbstractGameEventListener {
             island = plugin.getGrid().getIslandAt(entity.getLocation(wrapper.getHandle()));
         }
 
-        if (island == null || island.isSpawn() || !island.areAllOnlinePlayersInsideAFK())
+        if (island == null || island.isSpawn() || island.anyPlayerInsideMatches(ONLINE_AND_NOT_AFK))
             return;
 
         e.setCancelled();

@@ -88,6 +88,7 @@ import java.util.PriorityQueue;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class SpawnIsland implements Island {
 
@@ -243,12 +244,26 @@ public class SpawnIsland implements Island {
     }
 
     @Override
-    public boolean areAllOnlinePlayersInsideAFK() {
+    public boolean anyPlayerInsideMatches(Predicate<SuperiorPlayer> predicate) {
+        Preconditions.checkNotNull(predicate, "predicate parameter cannot be null.");
+
         for (SuperiorPlayer superiorPlayer : playersInside) {
-            if (superiorPlayer.isOnline() && !superiorPlayer.isAFK())
-                return false;
+            if (predicate.test(superiorPlayer))
+                return true;
         }
-        return true;
+        return false;
+    }
+
+    @Override
+    public int countPlayersInside(Predicate<SuperiorPlayer> predicate) {
+        Preconditions.checkNotNull(predicate, "predicate parameter cannot be null.");
+
+        int count = 0;
+        for (SuperiorPlayer superiorPlayer : playersInside) {
+            if (predicate.test(superiorPlayer))
+                ++count;
+        }
+        return count;
     }
 
     @Override
